@@ -68,93 +68,99 @@ const { from } = m
 try {
       
 const body = (
-  // Pesan teks biasa
-  m.mtype === "conversation" ? m.message.conversation :
-  m.mtype === "extendedTextMessage" ? m.message.extendedTextMessage.text :
+    // Pesan teks biasa
+    m.mtype === "conversation" ? m.message.conversation :
+    m.mtype === "extendedTextMessage" ? m.message.extendedTextMessage.text :
 
-  // Pesan media dengan caption
-  ["imageMessage", "videoMessage", "documentMessage", "audioMessage", "stickerMessage"]
-    .includes(m.mtype) ? m.message[m.mtype].caption || "" :
+    // Pesan media dengan caption
+    m.mtype === "imageMessage" ? m.message.imageMessage.caption :
+    m.mtype === "videoMessage" ? m.message.videoMessage.caption :
+    m.mtype === "documentMessage" ? m.message.documentMessage.caption || "" :
+    m.mtype === "audioMessage" ? m.message.audioMessage.caption || "" :
+    m.mtype === "stickerMessage" ? m.message.stickerMessage.caption || "" :
 
-  // Pesan interaktif (tombol, list, dll.)
-  m.mtype === "buttonsResponseMessage" ? m.message.buttonsResponseMessage.selectedButtonId :
-  m.mtype === "listResponseMessage" ? m.message.listResponseMessage.singleSelectReply.selectedRowId :
-  m.mtype === "templateButtonReplyMessage" ? m.message.templateButtonReplyMessage.selectedId :
-  m.mtype === "interactiveResponseMessage" ? JSON.parse(m.msg.nativeFlowResponseMessage.paramsJson).id :
+    // Pesan interaktif (tombol, list, dll.)
+    m.mtype === "buttonsResponseMessage" ? m.message.buttonsResponseMessage.selectedButtonId :
+    m.mtype === "listResponseMessage" ? m.message.listResponseMessage.singleSelectReply.selectedRowId :
+    m.mtype === "templateButtonReplyMessage" ? m.message.templateButtonReplyMessage.selectedId :
+    m.mtype === "interactiveResponseMessage" ? JSON.parse(m.msg.nativeFlowResponseMessage.paramsJson).id :
 
-  // Pesan khusus
-  m.mtype === "messageContextInfo" ? (
-    m.message.buttonsResponseMessage?.selectedButtonId ||
-    m.message.listResponseMessage?.singleSelectReply.selectedRowId || 
-    m.text
-  ) :
-  m.mtype === "reactionMessage" ? m.message.reactionMessage.text :
-  m.mtype === "contactMessage" ? m.message.contactMessage.displayName :
-  m.mtype === "contactsArrayMessage" ? 
-    m.message.contactsArrayMessage.contacts.map(c => c.displayName).join(", ") :
-  ["locationMessage", "liveLocationMessage"].includes(m.mtype) ? 
-    `${m.message[m.mtype].degreesLatitude}, ${m.message[m.mtype].degreesLongitude}` :
-  ["pollCreationMessage", "pollUpdateMessage"].includes(m.mtype) ? m.message[m.mtype].name :
-  m.mtype === "groupInviteMessage" ? m.message.groupInviteMessage.groupJid :
+    // Pesan khusus
+    m.mtype === "messageContextInfo" ? m.message.buttonsResponseMessage?.selectedButtonId || 
+    m.message.listResponseMessage?.singleSelectReply.selectedRowId || m.text :
+    m.mtype === "reactionMessage" ? m.message.reactionMessage.text :
+    m.mtype === "contactMessage" ? m.message.contactMessage.displayName :
+    m.mtype === "contactsArrayMessage" ? m.message.contactsArrayMessage.contacts.map(c => c.displayName).join(", ") :
+    m.mtype === "locationMessage" ? `${m.message.locationMessage.degreesLatitude}, ${m.message.locationMessage.degreesLongitude}` :
+    m.mtype === "liveLocationMessage" ? `${m.message.liveLocationMessage.degreesLatitude}, ${m.message.liveLocationMessage.degreesLongitude}` :
+    m.mtype === "pollCreationMessage" ? m.message.pollCreationMessage.name :
+    m.mtype === "pollUpdateMessage" ? m.message.pollUpdateMessage.name :
+    m.mtype === "groupInviteMessage" ? m.message.groupInviteMessage.groupJid :
+    
+    // Pesan satu kali lihat (View Once)
+    m.mtype === "viewOnceMessage" ? (m.message.viewOnceMessage.message.imageMessage?.caption || 
+                                     m.message.viewOnceMessage.message.videoMessage?.caption || 
+                                     "[Pesan sekali lihat]") :
+    m.mtype === "viewOnceMessageV2" ? (m.message.viewOnceMessageV2.message.imageMessage?.caption || 
+                                       m.message.viewOnceMessageV2.message.videoMessage?.caption || 
+                                       "[Pesan sekali lihat]") :
+    m.mtype === "viewOnceMessageV2Extension" ? (m.message.viewOnceMessageV2Extension.message.imageMessage?.caption || 
+                                                m.message.viewOnceMessageV2Extension.message.videoMessage?.caption || 
+                                                "[Pesan sekali lihat]") :
 
-  // Pesan sekali lihat (View Once)
-  ["viewOnceMessage", "viewOnceMessageV2", "viewOnceMessageV2Extension"].includes(m.mtype) ? (
-    m.message[m.mtype].message.imageMessage?.caption || 
-    m.message[m.mtype].message.videoMessage?.caption || 
-    "[Pesan sekali lihat]"
-  ) :
+    // Pesan sementara (ephemeralMessage)
+    m.mtype === "ephemeralMessage" ? (m.message.ephemeralMessage.message.conversation ||
+                                      m.message.ephemeralMessage.message.extendedTextMessage?.text || 
+                                      "[Pesan sementara]") :
 
-  // Pesan sementara (ephemeralMessage)
-  m.mtype === "ephemeralMessage" ? (
-    m.message.ephemeralMessage.message.conversation ||
-    m.message.ephemeralMessage.message.extendedTextMessage?.text || 
-    "[Pesan sementara]"
-  ) :
+    // Pesan interaktif lain
+    m.mtype === "interactiveMessage" ? "[Pesan interaktif]" :
 
-  // Pesan lain
-  m.mtype === "interactiveMessage" ? "[Pesan interaktif]" :
-  m.mtype === "protocolMessage" ? "[Pesan telah dihapus]" :
-  ""
+    // Pesan yang dihapus
+    m.mtype === "protocolMessage" ? "[Pesan telah dihapus]" :
+
+    ""
 );
-
-const budy = (typeof m.text == 'string' ? m.text : '');
-const prefix = global.prefa 
-  ? /^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi.test(body) 
-    ? body.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi)[0] 
-    : "" 
-  : global.prefa ?? global.prefix;
-
-const owner = JSON.parse(fs.readFileSync('./system/owner.json'));
-const Premium = JSON.parse(fs.readFileSync('./system/premium.json'));
-const isCmd = body.startsWith(prefix);
-const command = isCmd ? body.slice(prefix.length).trim().split(' ').shift().toLowerCase() : '';
-const args = body.trim().split(/ +/).slice(1);
-const botNumber = await client.decodeJid(client.user.id);
-const isCreator = [botNumber, ...owner].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
-const isPremium = [botNumber, ...Premium].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
-const qtext = q = args.join(" ");
-const quoted = m.quoted ? m.quoted : m;
-const from = mek.key.remoteJid;
-const { spawn, exec } = require('child_process');
-const sender = m.isGroup ? (m.key.participant || m.participant) : m.key.remoteJid;
-const groupMetadata = m.isGroup ? await client.groupMetadata(from).catch(e => {}) : '';
-const participants = m.isGroup ? groupMetadata.participants : '';
-const groupAdmins = m.isGroup ? getGroupAdmins(participants) : '';
-const isBotAdmins = m.isGroup ? groupAdmins.includes(botNumber) : false;
-const isAdmins = m.isGroup ? groupAdmins.includes(m.sender) : false;
+const budy = (typeof m.text == 'string' ? m.text: '')
+const prefix = global.prefa ? /^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi.test(body) ? body.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi)[0] : "" : global.prefa ?? global.prefix
+const owner = JSON.parse(fs.readFileSync('./system/owner.json'))
+const Premium = JSON.parse(fs.readFileSync('./system/premium.json'))
+const isCmd = body.startsWith(prefix)
+const command = body.startsWith(prefix) ? body.slice(prefix.length).trim().split(' ').shift().toLowerCase(): ''
+const args = body.trim().split(/ +/).slice(1)
+const botNumber = await client.decodeJid(client.user.id)
+const isCreator = [botNumber, ...owner].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
+const isDev = owner
+  .map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net')
+  .includes(m.sender)
+const isPremium = [botNumber, ...Premium].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
+const qtext = q = args.join(" ")
+const quoted = m.quoted ? m.quoted : m
+const from = mek.key.remoteJid
+const { spawn: spawn, exec } = require('child_process')
+const sender = m.isGroup ? (m.key.participant ? m.key.participant : m.participant) : m.key.remoteJid
+const groupMetadata = m.isGroup ? await client.groupMetadata(from).catch(e => {}) : ''
+const participants = m.isGroup ? await groupMetadata.participants : ''
+const groupAdmins = m.isGroup ? await getGroupAdmins(participants) : ''
+const isBotAdmins = m.isGroup ? groupAdmins.includes(botNumber) : false
+const isAdmins = m.isGroup ? groupAdmins.includes(m.sender) : false
 const groupName = m.isGroup ? groupMetadata.subject : "";
-const pushname = m.pushName || "No Name";
-const time = moment(Date.now()).tz('Asia/Jakarta').locale('id').format('HH:mm:ss z');
-const mime = (quoted.msg || quoted).mimetype || '';
+const pushname = m.pushName || "No Name"
+const time = moment(Date.now()).tz('Asia/Jakarta').locale('id').format('HH:mm:ss z')
+const mime = (quoted.msg || quoted).mimetype || ''
 const todayDateWIB = new Date().toLocaleDateString('id-ID', {
   timeZone: 'Asia/Jakarta',
   year: 'numeric',
   month: 'long',
-  day: 'numeric'
+  day: 'numeric',
 });
 
 if (!client.public) {
 if (!isCreator) return
+}
+
+if (m.message) {
+    console.log(chalk.hex('#3498db')(`message " ${m.message} " dari ${pushname} di ${m.isGroup ? `grup ${groupMetadata.subject}` : 'private chat'}`));
 }
 
 switch(command) {
