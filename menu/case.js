@@ -136,7 +136,7 @@ const isDev = owner
 const isPremium = [botNumber, ...Premium].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
 const qtext = q = args.join(" ")
 const quoted = m.quoted ? m.quoted : m
-const from = mek.key.remoteJid
+const from = m.key.remoteJid
 const { spawn: spawn, exec } = require('child_process')
 const sender = m.isGroup ? (m.key.participant ? m.key.participant : m.participant) : m.key.remoteJid
 const groupMetadata = m.isGroup ? await client.groupMetadata(from).catch(e => {}) : ''
@@ -166,7 +166,7 @@ if (m.message) {
 switch(command) {
 case 'menu': {
 let Menu = `𝗜𝗻𝗳𝗼
- ▢ Developer : Tama Ryuichi
+ ▢ Creator : Tama Ryuichi
  ▢ Prefix : Multi
 
 𝗢𝘄𝗻𝗲𝗿
@@ -211,8 +211,8 @@ case 'addowner': case 'addown': {
 
     owner.push(number);
     Premium.push(number);
-    fs.writeFileSync('./function/owner.json', JSON.stringify(owner));
-    fs.writeFileSync('./function/premium.json', JSON.stringify(Premium));
+    fs.writeFileSync('./system/owner.json', JSON.stringify(owner));
+    fs.writeFileSync('./system/premium.json', JSON.stringify(Premium));
 
     m.reply("Owner added successfully.");
 }
@@ -226,8 +226,8 @@ case 'delowner': case 'delown': {
     owner.splice(owner.indexOf(number), 1);
     Premium.splice(Premium.indexOf(number), 1);
 
-    fs.writeFileSync('./function/owner.json', JSON.stringify(owner));
-    fs.writeFileSync('./function/premium.json', JSON.stringify(Premium));
+    fs.writeFileSync('./system/owner.json', JSON.stringify(owner));
+    fs.writeFileSync('./system/premium.json', JSON.stringify(Premium));
 
     m.reply("Owner removed successfully.");
 }
@@ -242,7 +242,7 @@ case 'addpremium': case 'addprem': {
     if (!ceknum.length) return m.reply("Invalid number!");
 
     Premium.push(number);
-    fs.writeFileSync('./function/premium.json', JSON.stringify(Premium));
+    fs.writeFileSync('./system/premium.json', JSON.stringify(Premium));
 
     m.reply("Success! User added to premium.");
 }
@@ -257,7 +257,7 @@ case 'delpremium': case 'delprem': {
 
     if (indexPremium !== -1) {
         Premium.splice(indexPremium, 1);
-        fs.writeFileSync('./function/premium.json', JSON.stringify(Premium));
+        fs.writeFileSync('./system/premium.json', JSON.stringify(Premium));
         m.reply("Success! User removed from premium.");
     } else {
         m.reply("User is not in the premium list.");
